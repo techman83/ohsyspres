@@ -8,6 +8,19 @@ After getting frustrated that Google Routines (Ok Google, you already know I'm #
 ```bash
 git clone https://github.com/techman83/ohsyspres.git
 pip3 install ohsyspres/.
+ohsyspres --help
+Usage: ohsyspres [OPTIONS]
+
+Options:
+  --host TEXT                   IP to advertise on, default 0.0.0.0
+  --port INTEGER                Port to listen on, default 1514
+  --openhab-url TEXT            URL for OpenHAB  [required]
+  -w, --watch-device DEVICE...  devices to watch/item names. ie -w
+                                846969F9D00F Phone -w 07559D07C215 Laptop
+
+  --append-network              Append Wifi Network to item, ie Phone_MyWiFi
+  --debug                       Enable debug logging
+  --help                        Show this message and exit
 ```
 
 ## Running
