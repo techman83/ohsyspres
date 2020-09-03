@@ -6,8 +6,8 @@ After getting frustrated that Google Routines (Ok Google, you already know I'm #
 
 ## Installation
 ```bash
-git clone https://blah
-pip3 install blah/.
+git clone https://github.com/techman83/ohsyspres.git
+pip3 install ohsyspres/.
 ```
 
 ## Running
