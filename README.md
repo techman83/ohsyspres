@@ -20,12 +20,16 @@ Options:
 
   --append-network              Append Wifi Network to item, ie Phone_MyWiFi
   --debug                       Enable debug logging
-  --help                        Show this message and exit
+  --log-file FILE               Path to log file
+  --help                        Show this message and exit.
 ```
 
 ## Running
 ```bash
 ohsyspres --openhab-url http://openhab2.hostname/ -w 'DA:7E:63:A1:97:5D' My_Phone_Item -w '728E05701B2D' Other_House_Member
+[2020-09-03 17:31:51,358] [INFO    ] 'da7e63a1975d' updated 'My_Phone_Item' with state 'ON'
+[2020-09-03 17:31:51,358] [INFO    ] 'da7e63a1975d' updated 'My_Phone_Item' with state 'OFF'
+[2020-09-03 17:32:16,058] [INFO    ] '728e05701b2d' updated 'Other_House_Member' with state 'ON'
 ```
 
 ## Syslog

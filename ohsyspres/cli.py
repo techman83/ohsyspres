@@ -5,29 +5,6 @@ import click
 
 from .presence import OpenhabSyslogPresence
 
-# HOST, PORT = "0.0.0.0", 1514
-# formatter = logging.Formatter('[%(asctime)s] [%(levelname)-8s] %(message)s')
-#
-#
-# def setup_logger(name, log_file, level=logging.INFO, console=False):
-#    """To setup as many loggers as you want"""
-#
-#    handler = logging.FileHandler('/tmp/' + log_file)
-#    handler.setFormatter(formatter)
-#
-#    logger = logging.getLogger(name)
-#    logger.setLevel(level)
-#    logger.addHandler(handler)
-#    if console:
-#        console_handler = logging.StreamHandler(sys.stdout)
-#        console_handler.setFormatter(formatter)
-#        logger.addHandler(console_handler)
-#
-#    return logger
-#
-#
-# logger = setup_logger('mikrotik', 'mikrotik.log', console=True)
-
 
 class DeviceTuple(click.Tuple):
     name = "device"
@@ -60,10 +37,18 @@ class DeviceTuple(click.Tuple):
 @click.option(
     '--debug', is_flag=True, default=False, help='Enable debug logging'
 )
-def run(host: str, port: int, debug: bool, **kwargs: Dict) -> None:
-    level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(
-        level=level, format='[%(asctime)s] [%(levelname)-8s] %(message)s')
+@click.option(
+    '--log-file', type=click.Path(file_okay=True, dir_okay=False, writable=True),
+    help="Path to log file"
+)
+def run(host: str, port: int, debug: bool, log_file: str, **kwargs: Dict) -> None:
+    logging_config = {
+        "level": logging.DEBUG if debug else logging.INFO,
+        "format": '[%(asctime)s] [%(levelname)-8s] %(message)s'
+    }
+    if log_file:
+        logging_config['filename'] = log_file
+    logging.basicConfig(**logging_config)  # type: ignore
     logging.debug(
         'host (%s) / port (%s) / **kwargs (%s)',
         host, port, kwargs
