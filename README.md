@@ -32,6 +32,24 @@ ohsyspres --openhab-url http://openhab2.hostname/ -w 'DA:7E:63:A1:97:5D' My_Phon
 [2020-09-03 17:32:16,058] [INFO    ] '728e05701b2d' updated 'Other_House_Member' with state 'ON'
 ```
 
+## SystemD
+Sample service file for startup via systemd - `/etc/systemd/system/ohsyspres.service`
+```
+[Unit]
+Description=ohsyspres - OpenHAB Syslog Presence Service
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=leon
+WorkingDirectory=/usr/local/ohsyspres
+ExecStart=/usr/local/ohsyspres/venv/bin/python /usr/local/ohsyspres/venv/bin/ohsyspres --openhab-url http://openhab/ -w 'DA:7E:63:A1:97:5D' My_Phone_Item -w '728E05701B2D' Other_House_Member --log-file /var/log/ohsyspres/ohsyspres.log
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
+```
+
 ## Syslog
 Whilst only MikroTik endpoints are currently supported, with a little work this could be expanded and has been written with that in mind.
 
