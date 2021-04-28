@@ -15,7 +15,7 @@ jobs:
         run: |
           export VERSION=$(echo $GITHUB_REF | sed 's/refs\/tags\/v//')
           echo "VERSION set to $VERSION"
-          echo VERSION=\'$VERSION\' > ohsyspres/ohsyspres_version.py
+          echo VERSION = \'$VERSION\' > ohsyspres/ohsyspres_version.py
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
