@@ -21,9 +21,21 @@ setup(
     },
     extras_require={
         'development': [
-            'pylint',
             'autopep8',
+            'pytest',
+            'pytest-mypy',
             'mypy',
+            'pytest-pylint',
+            'pylint',
+            'pytest-flake8',
+        ],
+        'test': [
+            'pytest',
+            'pytest-mypy',
+            'mypy',
+            'pytest-pylint',
+            'pylint',
+            'pytest-flake8',
         ]
-    },
+    }
 )

@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods,useless-object-inheritance
 import unittest
 from ohsyspres.parsers import MikrotikParser
 
