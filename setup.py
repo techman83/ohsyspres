@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
+from ohsyspres import __version__
 
 setup(
     name='openhab-syslog-parser',
-    version='0.1',
+    version=__version__,
     description='Openhab Syslog Presence Listener',
     author='Leon Wright',
     author_email='techman83@gmail.com',
