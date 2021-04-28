@@ -1,0 +1,38 @@
+---
+name: Generate Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  generate-release:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set package version
+        run: |
+          export VERSION=$(echo $GITHUB_REF | sed 's/refs\/tags\/v//')
+          echo "VERSION set to $VERSION"
+          echo VERSION=\'$VERSION\' > ohsyspres/ohsyspres_version.py
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install test dependencies
+        run: |
+          pip install .[test]
+      - name: Run pytest
+        run: pytest -v
+      - name: Build package
+        run: python setup.py sdist
+      - name: Rename build artifact
+        run: find dist/. -name "*.tar.gz" -type f -exec bash -c 'x="{}"; mv -v "$x" "${x// /_}"' \;
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            LICENSE.txt
+            dist/*.tar.gz
