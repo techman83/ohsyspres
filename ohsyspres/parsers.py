@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods
 import logging
 from typing import Dict
 from pyparsing import (
@@ -10,7 +11,7 @@ from pyparsing import (
 )
 
 
-class MikrotikParser(object):
+class MikrotikParser:
 
     def __init__(self) -> None:
         topic = Word(string.ascii_lowercase) + Suppress(",")
