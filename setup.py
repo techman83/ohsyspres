@@ -14,6 +14,7 @@ setup(
         'click',
         'requests',
         'pyparsing',
+        'librouteros',
     ],
     entry_points={
         'console_scripts': [
@@ -29,6 +30,8 @@ setup(
             'pytest-pylint',
             'pylint',
             'pytest-flake8',
+            'types-click',
+            'types-requests',
         ],
         'test': [
             'pytest',
@@ -37,6 +40,8 @@ setup(
             'pytest-pylint',
             'pylint',
             'pytest-flake8',
+            'types-click',
+            'types-requests',
         ]
     }
 )

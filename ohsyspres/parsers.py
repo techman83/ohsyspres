@@ -30,7 +30,7 @@ class MikrotikParser:
         payload = {}
         payload["topic"] = parsed[0]
         payload["level"] = parsed[1]
-        payload["device"] = parsed[2].replace(':', '').lower()
+        payload["device"] = parsed[2].upper()
         payload["network"] = parsed[3].replace('-', '_')
         payload["state"] = parsed[4]
         payload["switch"] = 'ON' if parsed[4] == 'connected' else 'OFF'
