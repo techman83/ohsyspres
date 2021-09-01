@@ -81,7 +81,7 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
             return
 
         item, data = self.watched(device, switch, network)
-        if network in self.guest_networks:
+        if not item and network in self.guest_networks:
             item, data = self.guest()
             logging.info('Current guest count: %s', data)
         elif not item:
