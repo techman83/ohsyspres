@@ -14,7 +14,7 @@ class BaseTests:
             self.assertEqual(self.disconnected['switch'], 'OFF')
 
         def test_device(self):
-            self.assertEqual(self.disconnected['device'], '846c6af9d00f')
+            self.assertEqual(self.disconnected['device'], '84:6C:6A:F9:D0:0F')
 
         def test_disconnected_network(self):
             self.assertEqual(self.disconnected['network'], 'wifi_network')

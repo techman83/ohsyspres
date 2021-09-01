@@ -1,10 +1,12 @@
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
 import logging
 import socketserver
 import click
 import requests
 from requests.exceptions import RequestException
 from pyparsing import ParseException
+from librouteros import connect
+from librouteros.query import Key
 
 from .parsers import MikrotikParser
 
@@ -19,10 +21,47 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
             'openhab_url').rstrip('/')
         self.watched_devices = dict(
             click.get_current_context().params.get('watch_device'))  # type: ignore
+        self.ignored_devices = list(
+            click.get_current_context().params.get('ignore_device'))  # type: ignore
+        self.guest_networks = list(
+            click.get_current_context().params.get('guest_network'))  # type: ignore
+        self.router_host = click.get_current_context().params.get(  # type: ignore
+            'router_host'
+        )
+        self.router_user, self.route_pass = click.get_current_context().params.get(  # type: ignore
+            'router_creds'
+        )
         self.append_network = click.get_current_context().params.get(  # type: ignore
             'append_network'
         )
         super().__init__(*args, **kwargs)
+
+    @property
+    def routeros(self):
+        return connect(
+            username=self.router_user,
+            password=self.route_pass,
+            host=self.router_host,
+        )
+
+    def watched(self, device, switch, network):
+        item = self.watched_devices.get(device)
+        if item is None:
+            logging.debug("'%s' not in watched device list", device)
+            return None, None
+
+        if self.append_network:
+            item = '{}_{}'.format(item, network)
+
+        return item, switch
+
+    def guest(self):
+        mac_address = Key('mac-address')
+        interface = Key('interface')
+        macs = [mac_address != x for x in [*self.ignored_devices, *self.watched_devices]]
+        results = self.routeros.path('/interface/wireless/registration-table').select(
+            mac_address, interface).where(interface == 'Guest', *macs)
+        return 'Total_Connected_Guests', str(len(list(results)))
 
     def handle(self):
         data = bytes.decode(self.request[0].strip(), encoding="utf-8")
@@ -32,20 +71,27 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
             logging.debug("Could not parse '%s'", data)
             return
 
-        device = parsed['device']
-        switch = parsed['switch']
-        item = self.watched_devices.get(device)
-        if item is None:
-            logging.debug("'%s' not in watched device list", device)
+        device = parsed.get('device')
+        switch = parsed.get('switch')
+        network = parsed.get('network')
+
+        if device in self.ignored_devices:
+            logging.info("Device '%s' in ignored device list",
+                         device)
             return
 
-        if self.append_network:
-            item = '{}_{}'.format(item, parsed['network'])
+        item, data = self.watched(device, switch, network)
+        if not item and network in self.guest_networks:
+            item, data = self.guest()
+            logging.info('Current guest count: %s', data)
+        else:
+            return
 
         item_url = '{}/rest/items/{}'.format(
             self.openhab_url, item)
         try:
-            result = requests.post(item_url, data=switch)
+            result = requests.post(item_url, data=data,
+                                   headers={'Content-Type': 'text/plain'})
         except RequestException as exception:
             logging.error('Web request exception %s', exception)
 
@@ -55,7 +101,7 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
             logging.debug(result.text)
         else:
             logging.info("'%s' updated '%s' with state '%s'",
-                         device, item, switch)
+                         device, item, data)
 
 
 class OpenhabSyslogPresence:
