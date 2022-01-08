@@ -12,16 +12,23 @@ ohsyspres --help
 Usage: ohsyspres [OPTIONS]
 
 Options:
-  --host TEXT                   IP to advertise on, default 0.0.0.0
-  --port INTEGER                Port to listen on, default 1514
-  --openhab-url TEXT            URL for OpenHAB  [required]
-  -w, --watch-device DEVICE...  devices to watch/item names. ie -w
-                                846969F9D00F Phone -w 07559D07C215 Laptop
+  --host TEXT                     IP to advertise on, default 0.0.0.0
+  --port INTEGER                  Port to listen on, default 1514
+  --openhab-url TEXT              URL for OpenHAB  [required]
+  --router-host TEXT              Router ip for guest count lookup
+  --router-creds <TEXT TEXT>...   Username Password for router, Scoped Read
+                                  Only account recommended,export
+                                  ROUTER_CREDS="username reallygoodropassword
 
-  --append-network              Append Wifi Network to item, ie Phone_MyWiFi
-  --debug                       Enable debug logging
-  --log-file FILE               Path to log file
-  --help                        Show this message and exit.
+  -w, --watch-device DEVICE...    devices to watch/item names. ie -w
+                                  846969F9D00F Phone -w 07559D07C215 Laptop
+
+  --append-network                Append Wifi Network to item, ie Phone_MyWiFi
+  -i, --ignore-device MACADDRESS  Devices to ignore. ie -i 846969F9D01F
+  -g, --guest-network TEXT        Guest networks for simple device counts
+  --debug                         Enable debug logging
+  --log-file FILE                 Path to log file
+  --help                          Show this message and exit.
 ```
 
 ## Running
