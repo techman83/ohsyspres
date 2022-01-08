@@ -51,16 +51,28 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
             return None, None
 
         if self.append_network:
-            item = '{}_{}'.format(item, network)
+            item = f'{item}_{network}'.replace('-', '_')
 
         return item, switch
 
-    def guest(self):
+    def wireless_guest(self):
         mac_address = Key('mac-address')
         interface = Key('interface')
         macs = [mac_address != x for x in [*self.ignored_devices, *self.watched_devices]]
         results = self.routeros.path('/interface/wireless/registration-table').select(
             mac_address, interface).where(interface == 'Guest', *macs)
+        return 'Total_Connected_Guests', str(len(list(results)))
+
+    def caps_guest(self):
+        mac_address = Key('mac-address')
+        interface = Key('interface')
+        macs = [mac_address != x for x in [*self.ignored_devices, *self.watched_devices]]
+        results = []
+        for network in self.guest_networks:
+            devices = self.routeros.path('/caps-man/registration-table').select(
+                mac_address, interface).where(interface == network, *macs)
+            results.extend(devices)
+        logging.debug(results)
         return 'Total_Connected_Guests', str(len(list(results)))
 
     def handle(self):
@@ -71,6 +83,7 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
             logging.debug("Could not parse '%s'", data)
             return
 
+        topic = parsed.get('topic', 'wireless')
         device = parsed.get('device')
         switch = parsed.get('switch')
         network = parsed.get('network')
@@ -82,13 +95,12 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
 
         item, data = self.watched(device, switch, network)
         if not item and network in self.guest_networks:
-            item, data = self.guest()
+            item, data = getattr(self, f'{topic}_guest')()
             logging.info('Current guest count: %s', data)
         elif not item:
             return
 
-        item_url = '{}/rest/items/{}'.format(
-            self.openhab_url, item)
+        item_url = f'{self.openhab_url}/rest/items/{item}'
         try:
             result = requests.post(item_url, data=data,
                                    headers={'Content-Type': 'text/plain'})

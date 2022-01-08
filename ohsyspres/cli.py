@@ -42,6 +42,7 @@ class MacAddress(click.ParamType):
 )
 @click.option(
     '--router-creds', nargs=2, type=click.Tuple([str, str]), envvar='ROUTER_CREDS',
+    default=[None] * 2,
     help=('Username Password for router, Scoped Read Only account recommended,'
           'export ROUTER_CREDS="username reallygoodropassword')
 )
