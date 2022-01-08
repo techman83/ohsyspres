@@ -51,7 +51,7 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
             return None, None
 
         if self.append_network:
-            item = '{}_{}'.format(item, network)
+            item = f'{item}_{network}'.replace('-', '_')
 
         return item, switch
 
