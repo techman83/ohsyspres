@@ -100,8 +100,7 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
         elif not item:
             return
 
-        item_url = '{}/rest/items/{}'.format(
-            self.openhab_url, item)
+        item_url = f'{self.openhab_url}/rest/items/{item}'
         try:
             result = requests.post(item_url, data=data,
                                    headers={'Content-Type': 'text/plain'})
