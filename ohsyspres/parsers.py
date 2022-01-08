@@ -9,6 +9,7 @@ from pyparsing import (
     string,
     Regex,
 )
+from pyparsing import Optional as Opt
 
 
 class MikrotikParser:
@@ -17,7 +18,7 @@ class MikrotikParser:
         topic = Word(string.ascii_lowercase) + Suppress(",")
         level = Word(string.ascii_lowercase)
         device = Word(alphas + nums + "_" + "-" + "." + ":") + Suppress("@")
-        network = Word(alphas + '-') + Suppress(":")
+        network = Word(alphas + nums + '-') + Suppress(Opt(":") + Opt(" "))
         state = Word(alphas) + Suppress(",")
         message = Regex(".*")
 
