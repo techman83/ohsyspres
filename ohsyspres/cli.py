@@ -46,6 +46,10 @@ class MacAddress(click.ParamType):
           'export ROUTER_CREDS="username reallygoodropassword')
 )
 @click.option(
+    '--interface', help='Router interface for registratrion table search, ie wifiwave2',
+    default='wireless'
+)
+@click.option(
     '--watch-device', '-w', nargs=2, type=DeviceTuple([str, str]), multiple=True,
     help="devices to watch/item names. ie -w 846969F9D00F Phone -w 07559D07C215 Laptop",
 )

@@ -23,6 +23,8 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
             click.get_current_context().params.get('watch_device'))  # type: ignore
         self.ignored_devices = list(
             click.get_current_context().params.get('ignore_device'))  # type: ignore
+        self.interface = str(
+            click.get_current_context().params.get('interface'))  # type: ignore
         self.guest_networks = list(
             click.get_current_context().params.get('guest_network'))  # type: ignore
         self.router_host = click.get_current_context().params.get(  # type: ignore
