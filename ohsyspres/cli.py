@@ -66,6 +66,10 @@ class MacAddress(click.ParamType):
     help='Guest networks for simple device counts'
 )
 @click.option(
+    '--guest-ssid', help='Guest ssid to filter for simple device counts',
+    default='Guest'
+)
+@click.option(
     '--debug', is_flag=True, default=False, help='Enable debug logging'
 )
 @click.option(

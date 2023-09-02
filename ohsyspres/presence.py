@@ -25,6 +25,8 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
             click.get_current_context().params.get('ignore_device'))  # type: ignore
         self.interface = str(
             click.get_current_context().params.get('interface'))  # type: ignore
+        self.guest_ssid = str(
+            click.get_current_context().params.get('guest_ssid'))  # type: ignore
         self.guest_networks = list(
             click.get_current_context().params.get('guest_network'))  # type: ignore
         self.router_host = click.get_current_context().params.get(  # type: ignore
@@ -59,10 +61,10 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
 
     def guest(self):
         mac_address = Key('mac-address')
-        interface = Key('interface')
+        ssid = Key('ssid')
         macs = [mac_address != x for x in [*self.ignored_devices, *self.watched_devices]]
-        results = self.routeros.path('/interface/wireless/registration-table').select(
-            mac_address, interface).where(interface == 'Guest', *macs)
+        results = self.routeros.path(f'/interface/{self.interface}/registration-table').select(
+            mac_address, ssid).where(ssid == self.guest_ssid, *macs)
         return 'Total_Connected_Guests', str(len(list(results)))
 
     def handle(self):
