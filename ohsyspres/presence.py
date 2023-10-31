@@ -12,31 +12,38 @@ from .parsers import MikrotikParser
 
 
 class SyslogUDPHandler(socketserver.BaseRequestHandler):
-
     def __init__(self, *args, **kwargs) -> None:
         # These values are already checked by click on the way in,
         # however mypy doesn't like when you try to do operations on
         # potentially 'None' variables.
-        self.openhab_url = click.get_current_context().params.get(  # type: ignore
-            'openhab_url').rstrip('/')
+        self.openhab_url = (
+            click.get_current_context()
+            .params.get("openhab_url")  # type: ignore
+            .rstrip("/")
+        )
         self.watched_devices = dict(
-            click.get_current_context().params.get('watch_device'))  # type: ignore
+            click.get_current_context().params.get("watch_device")
+        )  # type: ignore
         self.ignored_devices = list(
-            click.get_current_context().params.get('ignore_device'))  # type: ignore
+            click.get_current_context().params.get("ignore_device")
+        )  # type: ignore
         self.interface = str(
-            click.get_current_context().params.get('interface'))  # type: ignore
+            click.get_current_context().params.get("interface")
+        )  # type: ignore
         self.guest_ssid = str(
-            click.get_current_context().params.get('guest_ssid'))  # type: ignore
+            click.get_current_context().params.get("guest_ssid")
+        )  # type: ignore
         self.guest_networks = list(
-            click.get_current_context().params.get('guest_network'))  # type: ignore
+            click.get_current_context().params.get("guest_network")
+        )  # type: ignore
         self.router_host = click.get_current_context().params.get(  # type: ignore
-            'router_host'
+            "router_host"
         )
         self.router_user, self.route_pass = click.get_current_context().params.get(  # type: ignore
-            'router_creds'
+            "router_creds"
         )
         self.append_network = click.get_current_context().params.get(  # type: ignore
-            'append_network'
+            "append_network"
         )
         super().__init__(*args, **kwargs)
 
@@ -55,66 +62,83 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
             return None, None
 
         if self.append_network:
-            item = '{}_{}'.format(item, network)
+            item = "{}_{}".format(item, network)
 
         return item, switch
 
     def guest(self):
-        mac_address = Key('mac-address')
-        ssid = Key('ssid')
-        macs = [mac_address != x for x in [*self.ignored_devices, *self.watched_devices]]
-        results = self.routeros.path(f'/interface/{self.interface}/registration-table').select(
-            mac_address, ssid).where(ssid == self.guest_ssid, *macs)
-        return 'Total_Connected_Guests', str(len(list(results)))
+        mac_address = Key("mac-address")
+        ssid = Key("ssid")
+        macs = [
+            mac_address != x for x in [*self.ignored_devices, *self.watched_devices]
+        ]
+        results = (
+            self.routeros.path(f"/interface/{self.interface}/registration-table")
+            .select(mac_address, ssid)
+            .where(ssid == self.guest_ssid, *macs)
+        )
+        return "Total_Connected_Guests", str(len(list(results)))
 
     def handle(self):
         data = bytes.decode(self.request[0].strip(), encoding="utf-8")
+
+        # Hacky McHack lives here!
+        if "roamed to" not in data:
+            self.process(data)
+            return
+
+        disconnected = f"{data.split('roamed to ')[0]}disconnected, network"
+        connected = (
+            f"wireless,info {data.split('roamed to ')[1].split(',')[0]}, connected"
+        )
+
+        for state in [connected, disconnected]:
+            self.process(state)
+
+    def process(self, data: str) -> None:
         try:
             parsed = MikrotikParser().parse(data)
         except ParseException:
             logging.debug("Could not parse '%s'", data)
             return
 
-        device = parsed.get('device')
-        switch = parsed.get('switch')
-        network = parsed.get('network')
+        device = parsed.get("device")
+        switch = parsed.get("switch")
+        network = parsed.get("network")
 
         if device in self.ignored_devices:
-            logging.info("Device '%s' in ignored device list",
-                         device)
+            logging.info("Device '%s' in ignored device list", device)
             return
 
         item, data = self.watched(device, switch, network)
         if not item and network in self.guest_networks:
             item, data = self.guest()
-            logging.info('Current guest count: %s', data)
+            logging.info("Current guest count: %s", data)
         elif not item:
             return
 
-        item_url = '{}/rest/items/{}'.format(
-            self.openhab_url, item)
+        item_url = "{}/rest/items/{}".format(self.openhab_url, item)
         try:
-            result = requests.post(item_url, data=data,
-                                   headers={'Content-Type': 'text/plain'})
+            result = requests.post(
+                item_url, data=data, headers={"Content-Type": "text/plain"}
+            )
         except RequestException as exception:
-            logging.error('Web request exception %s', exception)
+            logging.error("Web request exception %s", exception)
 
         if result.status_code > 299:
-            logging.error('Item update failed: %s (%s)',
-                          result.reason, result.status_code)
+            logging.error(
+                "Item update failed: %s (%s)", result.reason, result.status_code
+            )
             logging.debug(result.text)
         else:
-            logging.info("'%s' updated '%s' with state '%s'",
-                         device, item, data)
+            logging.info("'%s' updated '%s' with state '%s'", device, item, data)
 
 
 class OpenhabSyslogPresence:
-
     def __init__(self, host: str, port: int) -> None:
         self.host = host
         self.port = port
-        self.server = socketserver.UDPServer(
-            (self.host, self.port), SyslogUDPHandler)
+        self.server = socketserver.UDPServer((self.host, self.port), SyslogUDPHandler)
 
     def run(self) -> None:
         try:
