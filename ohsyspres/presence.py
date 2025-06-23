@@ -102,7 +102,7 @@ class SyslogUDPHandler(socketserver.BaseRequestHandler):
 
         item_url = f'{self.openhab_url}/rest/items/{item}'
         try:
-            result = requests.post(item_url, data=data,
+            result = requests.post(item_url, data=data, timeout=10,
                                    headers={'Content-Type': 'text/plain'})
         except RequestException as exception:
             logging.error('Web request exception %s', exception)
@@ -124,6 +124,7 @@ class OpenhabSyslogPresence:
         self.server = socketserver.UDPServer(
             (self.host, self.port), SyslogUDPHandler)
 
+    # pylint: disable=broad-exception-raised
     def run(self) -> None:
         try:
             self.server.serve_forever(poll_interval=0.5)
