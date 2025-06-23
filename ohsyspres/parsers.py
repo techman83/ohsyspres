@@ -18,7 +18,15 @@ class MikrotikParser:
         topic = Word(string.ascii_lowercase) + Suppress(",")
         level = Word(string.ascii_lowercase)
         device = Word(alphas + nums + "_" + "-" + "." + ":") + Suppress("@")
-        network = Word(alphas + nums + '-') + Suppress(Opt(":") + Opt(" "))
+
+        # Handle optional SSID name in parentheses after network name
+        ssid_part = Suppress("(") + Regex(r"[^)]*") + Suppress(")")
+        network = (
+            Word(alphas + nums + "-")
+            + Suppress(Opt(ssid_part))
+            + Suppress(Opt(":") + Opt(" "))
+        )
+
         state = Word(alphas) + Suppress(",")
         message = Regex(".*")
 

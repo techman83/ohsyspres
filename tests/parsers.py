@@ -60,3 +60,30 @@ class TestMirkotikCapsParser(BaseTests.Parser):
 
     def test_topic(self):
         self.assertEqual(self.disconnected['topic'], 'caps')
+
+
+class TestMikrotikCapsParserSSID(BaseTests.Parser):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.connected = MikrotikParser().parse(
+            'caps,info 84:6c:6a:F9:D0:0F@prefix-ap-1(SSID Name) connected, signal strength -40'
+        )
+        cls.disconnected = MikrotikParser().parse(
+            (
+                'caps,info 84:6c:6a:F9:D0:0F@prefix-ap-1(SSID Name) disconnected, '
+                'connection lost, signal strength -45'
+            )
+        )
+
+    def test_connected_state(self):
+        self.assertEqual(self.connected['state'], 'connected')
+
+    def test_disconnected_state(self):
+        self.assertEqual(self.disconnected['state'], 'disconnected')
+
+    def test_disconnected_network(self):
+        self.assertEqual(self.disconnected['network'], 'prefix-ap-1')
+
+    def test_topic(self):
+        self.assertEqual(self.disconnected['topic'], 'caps')
